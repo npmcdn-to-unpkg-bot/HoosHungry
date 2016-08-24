@@ -1,4 +1,4 @@
 HoosHungry
 ==========
 
-Web app designed to show dining halls currently open at University of Virginia
+Extremely simple web app using Moment JS and React to display dining halls currently open at the University of Virginia.
