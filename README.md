@@ -1,4 +1,6 @@
 HoosHungry
 ==========
 
-Extremely simple web app using Moment JS and React to display dining halls currently open at the University of Virginia.
+Overly engineered web app that scrapes the dining hall hours and displays the ones that are currently open.
+
+Using Node, Express, Request, Cheerio, Moment, and React.
