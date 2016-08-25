@@ -7,26 +7,26 @@ function translateDateToNum(stringDay){
 	var numberDay;
 	switch(stringDay) {
 		case 'Sunday':
-			numberDay = 0;
-			break;
+		numberDay = 0;
+		break;
 		case 'Monday':
-			numberDay = 1;
-			break;
+		numberDay = 1;
+		break;
 		case 'Tuesday':
-			numberDay = 2;
-			break;
+		numberDay = 2;
+		break;
 		case 'Wednesday':
-			numberDay = 3;
-			break;
+		numberDay = 3;
+		break;
 		case 'Thursday':
-			numberDay = 4;
-			break;
+		numberDay = 4;
+		break;
 		case 'Friday':
-			numberDay = 5;
-			break;
+		numberDay = 5;
+		break;
 		case 'Saturday':
-			numberDay = 6;
-			break;
+		numberDay = 6;
+		break;
 	}
 	return numberDay;
 }
@@ -54,7 +54,7 @@ app.get('/scrape', function (req, res){
 			
 			var hours;
 
-			var json = { };
+			var jsonHours = {};
 
 			$('.content-box').filter(function(){
 				
@@ -63,30 +63,41 @@ app.get('/scrape', function (req, res){
 
 				hours = data.children();
 				
+				console.log(hours);
 
 				for (i=0; i < hours.length; i++) {
 					if (hours[i].prev.data !== undefined){
 						var dayHours = hours[i].prev.data.toString().trim();
-
+						
+						
+						// if multi day hours provided
+						
 						if (dayHours.indexOf('-') != dayHours.lastIndexOf('-')){
 							
 							// String form: firstDay-lastDay: openTime (am/pm) - closeTime (am/pm)
-							
+
 							var multiDay = dayHours.split('-');
 
-							var firstDay = multiDay[0];
-							var lastDay = multiDay[1];
+							var firstDay = translateDateToNum(multiDay[0].trim());
+							var lastDay = translateDateToNum(multiDay[1].trim());
 
 
-							console.log("multiple days listed");
+							
 
 							if (! dayHours.includes('Closed')) {
+
+								for (j=firstDay; j < lastDay; j++){
+									// insert hours at each i
+									//jsonHours[i] = { "name": location, "open": , "close": };
+									
+
+								}
+
 								// find the range of days and get open and close times
 							}
 							else {
-								// do something else for closed case
 
-								// don't add anything to the map?
+								// don't add anything to our map?
 							}
 						}
 						else {
@@ -97,7 +108,8 @@ app.get('/scrape', function (req, res){
 							// First element should be singular day of the week
 							var dayOfTheWeek = daySplit[0];
 							
-							console.log(dayOfTheWeek);
+							var dayNum = translateDateToNum(dayOfTheWeek);
+							
 
 							if (! dayHours.includes('Closed')) {
 								var hoursSplit = dayHours.split('-');
@@ -109,12 +121,13 @@ app.get('/scrape', function (req, res){
 							}
 							else {
 							// something for when a dining hall is closed
+							}
 						}
 					}
+					
 				}
 
-
-			}
+			
 
 
 
