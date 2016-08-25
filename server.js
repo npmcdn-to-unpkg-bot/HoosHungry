@@ -3,31 +3,66 @@ var request = require('request');
 var cheerio = require('cheerio');
 var app = express();
 
+function translateDateToNum(stringDay){
+	var numberDay;
+	switch(stringDay) {
+		case 'Sunday':
+			numberDay = 0;
+			break;
+		case 'Monday':
+			numberDay = 1;
+			break;
+		case 'Tuesday':
+			numberDay = 2;
+			break;
+		case 'Wednesday':
+			numberDay = 3;
+			break;
+		case 'Thursday':
+			numberDay = 4;
+			break;
+		case 'Friday':
+			numberDay = 5;
+			break;
+		case 'Saturday':
+			numberDay = 6;
+			break;
+	}
+	return numberDay;
+}
+
 app.get('/scrape', function (req, res){
 	
 
-	console.log("inside scrape");
-	// Needs to be switched to grab a list of URLs (from JSON map)
+	// Needs to be switched to grab a list of URLs
 	var url = "http://virginia.campusdish.com/Locations/AldermanCafe.aspx";
 
 	// send a request for each URL in the list
 
+	// add for loop
 	request(url, function(error, response, html){
 
 		if(!error){
-			console.log("no error");
+			
+			// load entire HTML structure in $
 			var $ = cheerio.load(html);
 
+			// Cafe Name - Virginia 
+			// Get text from between title tags, convert to string, take off extraneous information
+
+			var location = $('head > title').text().toString().split('-')[0].trim();
+			
 			var hours;
+
 			var json = { };
 
 			$('.content-box').filter(function(){
-				console.log('Found hours block');
+				
 
 				var data = $(this);
 
 				hours = data.children();
-				console.log(hours.length);		
+				
 
 				for (i=0; i < hours.length; i++) {
 					if (hours[i].prev.data !== undefined){
@@ -36,6 +71,7 @@ app.get('/scrape', function (req, res){
 						if (dayHours.indexOf('-') != dayHours.lastIndexOf('-')){
 							
 							// String form: firstDay-lastDay: openTime (am/pm) - closeTime (am/pm)
+							
 							var multiDay = dayHours.split('-');
 
 							var firstDay = multiDay[0];
@@ -49,6 +85,8 @@ app.get('/scrape', function (req, res){
 							}
 							else {
 								// do something else for closed case
+
+								// don't add anything to the map?
 							}
 						}
 						else {
