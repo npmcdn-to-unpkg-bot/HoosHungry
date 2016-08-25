@@ -1,0 +1,25 @@
+{
+  "name": "hoos-hungry",
+  "version": "1.0.0",
+  "description": "Letting hoos know what food options are open.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charters/HoosHungry.git"
+  },
+  "author": "Alex Charters",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/charters/HoosHungry/issues"
+  },
+  "homepage": "https://github.com/charters/HoosHungry#readme",
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "express": "^4.14.0",
+    "moment": "^2.14.1",
+    "request": "^2.74.0"
+  }
+}
