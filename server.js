@@ -33,6 +33,22 @@ function translateDateToNum(stringDay){
 	return numberDay;
 }
 
+function getAllDiningUrls(){
+	var locationListUrl = 'http://virginia.campusdish.com/Locations.aspx';
+
+	request(locationListUrl, function(error, response, html){
+		if (!error && response.statusCode == 200) {
+   			var $ = cheerio.load(html);
+
+   			$('#mainnavigation_0_RptNavigation_LnkItem_2').next().children().each(
+   				function(i, element){
+   					console.log($(this).children().attr('href'));
+   			});
+	  	}
+
+	})
+}
+
 app.get('/scrape', function (req, res){
 	var jsonHours = JSON.parse('{"0":[], "1": [], "2": [], "3": [], "4": [], "5": [], "6": []}');
 	var currentUrl;
@@ -68,17 +84,15 @@ app.get('/scrape', function (req, res){
 						if (hours[i].prev.data !== undefined){
 							var dayHours = hours[i].prev.data.toString().trim();
 							
-							
-							// if multi day hours provided
-							console.log(dayHours);
+
+							// If there is more than one hyphen in the string by comparing indices of "-"
+
 							if (dayHours.indexOf('-') != dayHours.lastIndexOf('-')){
 								
 								// String form: firstDay-lastDay: openTime (am/pm) - closeTime (am/pm)
 
 								var multiDay = dayHours.split('-');
-
 								var firstDay = translateDateToNum(multiDay[0].trim());
-
 								var lastDay = translateDateToNum(multiDay[1].split(":")[0].trim());
 
 								
@@ -174,6 +188,7 @@ app.get('/scrape', function (req, res){
 
 app.listen('8081')
 
+getAllDiningUrls();
 console.log('Listening on port 8081');
 
 exports = module.exports = app;
