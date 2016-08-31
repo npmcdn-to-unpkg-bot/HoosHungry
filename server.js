@@ -32,7 +32,7 @@ function translateDateToNum(stringDay){
 }
 
 app.get('/scrape', function (req, res){
-	
+	var jsonHours = JSON.parse('{"0":[], "1": [], "2": [], "3": [], "4": [], "5": [], "6": []}');
 
 	// Needs to be switched to grab a list of URLs
 	var url = "http://virginia.campusdish.com/Locations/AldermanCafe.aspx";
@@ -54,7 +54,7 @@ app.get('/scrape', function (req, res){
 			
 			var hours;
 
-			var jsonHours = {};
+			
 
 			$('.content-box').filter(function(){
 				
@@ -71,7 +71,7 @@ app.get('/scrape', function (req, res){
 						
 						
 						// if multi day hours provided
-						
+
 						if (dayHours.indexOf('-') != dayHours.lastIndexOf('-')){
 							
 							// String form: firstDay-lastDay: openTime (am/pm) - closeTime (am/pm)
@@ -89,7 +89,7 @@ app.get('/scrape', function (req, res){
 								for (j=firstDay; j < lastDay; j++){
 									// insert hours at each i
 									//jsonHours[i] = { "name": location, "open": , "close": };
-									
+
 
 								}
 
