@@ -1,6 +1,8 @@
 var express = require('express');
 var request = require('request');
 var cheerio = require('cheerio');
+const fs = require('fs');
+const async = require('async');
 var app = express();
 
 function translateDateToNum(stringDay){
@@ -33,17 +35,18 @@ function translateDateToNum(stringDay){
 
 app.get('/scrape', function (req, res){
 	var jsonHours = JSON.parse('{"0":[], "1": [], "2": [], "3": [], "4": [], "5": [], "6": []}');
+	var currentUrl;
+	var urlFileString = fs.readFileSync('urls.txt').toString();
+	var urlList = urlFileString.split(/\r?\n/);
+	
 
-	// Needs to be switched to grab a list of URLs
-	var url = "http://virginia.campusdish.com/Locations/AldermanCafe.aspx";
+	// loop through each URL sequentially (NOT async) and add to JSON object
+	
+	async.each(urlList, function(currentUrl, callback){
+		request(currentUrl, function(error, response, html){
 
-	// send a request for each URL in the list
+			if(!error){
 
-	// add for loop
-	request(url, function(error, response, html){
-
-		if(!error){
-			
 			// load entire HTML structure in $
 			var $ = cheerio.load(html);
 
@@ -63,7 +66,6 @@ app.get('/scrape', function (req, res){
 
 				hours = data.children();
 				
-				console.log(hours);
 
 				for (i=0; i < hours.length; i++) {
 					if (hours[i].prev.data !== undefined){
@@ -85,14 +87,27 @@ app.get('/scrape', function (req, res){
 							
 
 							if (! dayHours.includes('Closed')) {
+								
+								// Back around list; example Friday - Sunday
+								var hoursSplit = dayHours.split('-');
+								var openTime = hoursSplit[0].split(' ')[1] + ' ' + hoursSplit[0].split(' ')[2];
+								var closeTime = hoursSplit[1].trim();
 
-								for (j=firstDay; j < lastDay; j++){
-									// insert hours at each i
-									//jsonHours[i] = { "name": location, "open": , "close": };
-
+								if (lastDay == 0) {
+									for (j=firstDay; j < 6; j++) {
+										jsonHours[j].push({ "name": location, "open": openTime, "close": closeTime});
+									}
+									jsonHours[0].push({ "name": location, "open": openTime, "close": closeTime});
 
 								}
 
+								for (j=firstDay; j < lastDay; j++){
+									
+									
+									jsonHours[j].push({ "name": location, "open": openTime, "close": closeTime});
+
+								}
+								console.log(location);
 								// find the range of days and get open and close times
 							}
 							else {
@@ -116,21 +131,15 @@ app.get('/scrape', function (req, res){
 								var openTime = hoursSplit[0].split(' ')[1] + ' ' + hoursSplit[0].split(' ')[2];
 								var closeTime = hoursSplit[1].trim();
 								
-								console.log("Open: " + openTime);
-								console.log("Close: " + closeTime);
+								jsonHours[dayNum].push({ "name": location, "open": openTime, "close": closeTime});
 							}
 							else {
 							// something for when a dining hall is closed
-							}
 						}
 					}
-					
 				}
 
-			
-
-
-
+			}
 
 		})
 
@@ -141,7 +150,18 @@ app.get('/scrape', function (req, res){
 			console.log("inside error");
 			console.log(error);
 		}
+		
+
 	})
+
+	}, function(err){
+		if (err) {
+			console.log('A url failed to be scraped');
+		} else {
+			console.log(jsonHours)
+		}
+	});	
+
 })
 
 app.listen('8081')
