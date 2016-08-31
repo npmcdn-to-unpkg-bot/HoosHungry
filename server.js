@@ -160,7 +160,7 @@ app.get('/scrape', function (req, res){
 		if (err) {
 			console.log('A url failed to be scraped');
 		} else {
-			fs.writeFile("jsonHours.txt", JSON.stringify(jsonHours), function(err) {
+			fs.writeFile("hours.json", JSON.stringify(jsonHours), function(err) {
 			    if(err) {
 			        return console.log(err);
 			    }
