@@ -33,132 +33,136 @@ function translateDateToNum(stringDay){
 	return numberDay;
 }
 
+
+
 app.get('/scrape', function (req, res){
 	var jsonHours = JSON.parse('{"0":[], "1": [], "2": [], "3": [], "4": [], "5": [], "6": []}');
 	var currentUrl;
 	var urlFileString = fs.readFileSync('urls.txt').toString();
 	var urlList = urlFileString.split(/\r?\n/);
 	
-
-	// loop through each URL sequentially (NOT async) and add to JSON object
-	
-	async.each(urlList, function(currentUrl, callback){
+	var fetch = function(currentUrl, callback) {
 		request(currentUrl, function(error, response, html){
-
+			
 			if(!error){
 
-			// load entire HTML structure in $
-			var $ = cheerio.load(html);
+				// load entire HTML structure in $
+				var $ = cheerio.load(html);
 
-			// Cafe Name - Virginia 
-			// Get text from between title tags, convert to string, take off extraneous information
+				// Cafe Name - Virginia 
+				// Get text from between title tags, convert to string, take off extraneous information
 
-			var location = $('head > title').text().toString().split('-')[0].trim();
-			
-			var hours;
+				var location = $('head > title').text().toString().split('-')[0].trim();
+				
+				var hours;
 
-			
-
-			$('.content-box').filter(function(){
 				
 
-				var data = $(this);
+				$('.content-box').filter(function(){
+					
 
-				hours = data.children();
-				
+					var data = $(this);
 
-				for (i=0; i < hours.length; i++) {
-					if (hours[i].prev.data !== undefined){
-						var dayHours = hours[i].prev.data.toString().trim();
-						
-						
-						// if multi day hours provided
+					hours = data.children();
+					
 
-						if (dayHours.indexOf('-') != dayHours.lastIndexOf('-')){
+					for (i=0; i < hours.length; i++) {
+						if (hours[i].prev.data !== undefined){
+							var dayHours = hours[i].prev.data.toString().trim();
 							
-							// String form: firstDay-lastDay: openTime (am/pm) - closeTime (am/pm)
-
-							var multiDay = dayHours.split('-');
-
-							var firstDay = translateDateToNum(multiDay[0].trim());
-							var lastDay = translateDateToNum(multiDay[1].trim());
-
-
 							
-
-							if (! dayHours.includes('Closed')) {
+							// if multi day hours provided
+							console.log(dayHours);
+							if (dayHours.indexOf('-') != dayHours.lastIndexOf('-')){
 								
-								// Back around list; example Friday - Sunday
-								var hoursSplit = dayHours.split('-');
-								var openTime = hoursSplit[0].split(' ')[1] + ' ' + hoursSplit[0].split(' ')[2];
-								var closeTime = hoursSplit[1].trim();
+								// String form: firstDay-lastDay: openTime (am/pm) - closeTime (am/pm)
 
-								if (lastDay == 0) {
-									for (j=firstDay; j < 6; j++) {
-										jsonHours[j].push({ "name": location, "open": openTime, "close": closeTime});
+								var multiDay = dayHours.split('-');
+
+								var firstDay = translateDateToNum(multiDay[0].trim());
+
+								var lastDay = translateDateToNum(multiDay[1].split(":")[0].trim());
+
+								
+
+								if (! dayHours.includes('Closed')) {
+									
+									
+									var hoursSplit = dayHours.split('-');
+									var openTime = hoursSplit[1].split(' ')[1] + ' ' + hoursSplit[1].split(' ')[2];
+									var closeTime = hoursSplit[2].trim();
+
+									// Back around list case; example Friday - Sunday
+
+									if (lastDay == 0) {
+										for (j=firstDay; j < 6; j++) {
+											jsonHours[j].push({ "name": location, "open": openTime, "close": closeTime});
+										}
+										jsonHours[0].push({ "name": location, "open": openTime, "close": closeTime});
+
 									}
-									jsonHours[0].push({ "name": location, "open": openTime, "close": closeTime});
+									else {
+										for (j=firstDay; j <= lastDay; j++){
+											jsonHours[j].push({ "name": location, "open": openTime, "close": closeTime});
 
+										}
+									}
+									// find the range of days and get open and close times
 								}
+								else {
 
-								for (j=firstDay; j < lastDay; j++){
-									
-									
-									jsonHours[j].push({ "name": location, "open": openTime, "close": closeTime});
-
+									// don't add anything to our map?
 								}
-								console.log(location);
-								// find the range of days and get open and close times
 							}
 							else {
+								//String form: dayOfTheWeek: openTime (am/pm) - closeTime (am/pm)
 
-								// don't add anything to our map?
-							}
-						}
-						else {
-							//String form: dayOfTheWeek: openTime (am/pm) - closeTime (am/pm)
-
-							var daySplit = dayHours.split(':');
-							
-							// First element should be singular day of the week
-							var dayOfTheWeek = daySplit[0];
-							
-							var dayNum = translateDateToNum(dayOfTheWeek);
-							
-
-							if (! dayHours.includes('Closed')) {
-								var hoursSplit = dayHours.split('-');
-								var openTime = hoursSplit[0].split(' ')[1] + ' ' + hoursSplit[0].split(' ')[2];
-								var closeTime = hoursSplit[1].trim();
+								var daySplit = dayHours.split(':');
 								
-								jsonHours[dayNum].push({ "name": location, "open": openTime, "close": closeTime});
+								// First element should be singular day of the week
+								var dayOfTheWeek = daySplit[0];
+								
+								var dayNum = translateDateToNum(dayOfTheWeek);
+								
+
+								if (! dayHours.includes('Closed')) {
+									var hoursSplit = dayHours.split('-');
+									var openTime = hoursSplit[0].split(' ')[1] + ' ' + hoursSplit[0].split(' ')[2];
+									var closeTime = hoursSplit[1].trim();
+									
+									jsonHours[dayNum].push({ "name": location, "open": openTime, "close": closeTime});
+								}
+								else {
+								// something for when a dining hall is closed
 							}
-							else {
-							// something for when a dining hall is closed
 						}
 					}
+
 				}
 
+			})
+
+			}
+			
+			else {
+				console.log(error);
+				callback(err);
 			}
 
+
+		callback();
 		})
 
-		}
-		
-		else {
-			
-			console.log("inside error");
-			console.log(error);
-		}
-		
+	}
+	// loop through each URL sequentially (NOT async) and add to JSON object
+	
 
-	})
 
-	}, function(err){
+	async.map(urlList, fetch, function(err){
 		if (err) {
 			console.log('A url failed to be scraped');
 		} else {
-			console.log(jsonHours)
+			res.send(jsonHours);
 		}
 	});	
 
