@@ -33,8 +33,6 @@ function translateDateToNum(stringDay){
 	return numberDay;
 }
 
-
-
 app.get('/scrape', function (req, res){
 	var jsonHours = JSON.parse('{"0":[], "1": [], "2": [], "3": [], "4": [], "5": [], "6": []}');
 	var currentUrl;
@@ -162,6 +160,12 @@ app.get('/scrape', function (req, res){
 		if (err) {
 			console.log('A url failed to be scraped');
 		} else {
+			fs.writeFile("jsonHours.txt", JSON.stringify(jsonHours), function(err) {
+			    if(err) {
+			        return console.log(err);
+			    }
+			    console.log("The file was saved!");
+			}); 
 			res.send(jsonHours);
 		}
 	});	
